@@ -1,0 +1,12 @@
+-------------------------------------------------------------------------------
+Test set: services.RedisTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.057 s <<< FAILURE! - in services.RedisTests
+testSendMail  Time elapsed: 1.019 s  <<< ERROR!
+org.springframework.data.redis.RedisConnectionFailureException: Unable to connect to Redis; nested exception is io.lettuce.core.RedisConnectionException: Unable to connect to localhost/<unresolved>:6379
+	at services.RedisTests.testSendMail(RedisTests.java:18)
+Caused by: io.lettuce.core.RedisConnectionException: Unable to connect to localhost/<unresolved>:6379
+	at services.RedisTests.testSendMail(RedisTests.java:18)
+Caused by: io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: localhost/127.0.0.1:6379
+Caused by: java.net.ConnectException: Connection refused: getsockopt
+

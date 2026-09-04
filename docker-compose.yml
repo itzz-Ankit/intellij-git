@@ -1,0 +1,48 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: mindvault-mongodb
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: mindvault-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mindvault:
+    build: .
+    image: mindvault:latest
+    container_name: mindvault-app
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/mindvault
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      WEATHER_API_KEY: ${WEATHER_API_KEY:-}
+      PORT: "8080"
+
+volumes:
+  mongodb_data:

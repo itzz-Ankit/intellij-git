@@ -1,0 +1,6 @@
+services\EmailServiceTests.class
+services\SentimentServiceTest.class
+services\UserDetailsServicelmplTests.class
+services\JournalServiceTest.class
+Scheduler\UserSchedulerTest.class
+services\AuthServiceTest.class
