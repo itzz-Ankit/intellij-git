@@ -29,33 +29,28 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private AuthenticationManager authenticationManager;
-    @Mock
-    private PasswordEncoder passwordEncoder;
-    @Mock
-    private JwtService jwtService;
+    @Mock private UserRepository userRepository;
+    @Mock private AuthenticationManager authenticationManager;
+    @Mock private PasswordEncoder passwordEncoder;
+    @Mock private JwtService jwtService;
 
-    @InjectMocks
-    private AuthService authService;
+    @InjectMocks private AuthService authService;
 
     private SignupRequest signupRequest;
 
     @BeforeEach
     void setUp() {
         signupRequest = SignupRequest.builder()
-                .username("ayush")
-                .email("ayush@example.com")
+                .username("itzzankit")
+                .email("itzzankit@example.com")
                 .password("secret1")
                 .build();
     }
 
     @Test
     void signupSavesUserAndReturnsMappedResponse() {
-        when(userRepository.existsByUsername("ayush")).thenReturn(false);
-        when(userRepository.existsByEmail("ayush@example.com")).thenReturn(false);
+        when(userRepository.existsByUsername("itzzankit")).thenReturn(false);
+        when(userRepository.existsByEmail("itzzankit@example.com")).thenReturn(false);
         when(passwordEncoder.encode("secret1")).thenReturn("encoded");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
@@ -67,38 +62,44 @@ class AuthServiceTest {
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(captor.capture());
-        assertEquals("ayush", captor.getValue().getUsername());
+        assertEquals("itzzankit", captor.getValue().getUsername());
+        assertEquals("itzzankit@example.com", captor.getValue().getEmail());
         assertEquals("encoded", captor.getValue().getPassword());
-        assertEquals("USER", captor.getValue().getRoles().get(0));
-        assertEquals("ayush", response.getUsername());
-        assertEquals("ayush@example.com", response.getEmail());
+        assertEquals(Collections.singletonList("USER"), captor.getValue().getRoles());
+        assertEquals("USER", response.getRole());
     }
 
     @Test
     void signupThrowsWhenUsernameExists() {
-        when(userRepository.existsByUsername("ayush")).thenReturn(true);
+        when(userRepository.existsByUsername("itzzankit")).thenReturn(true);
+        assertThrows(IllegalArgumentException.class, () -> authService.signup(signupRequest));
+    }
+
+    @Test
+    void signupThrowsWhenEmailExists() {
+        when(userRepository.existsByUsername("itzzankit")).thenReturn(false);
+        when(userRepository.existsByEmail("itzzankit@example.com")).thenReturn(true);
         assertThrows(IllegalArgumentException.class, () -> authService.signup(signupRequest));
     }
 
     @Test
     void loginReturnsJwtAuthResponse() {
-        LoginRequest loginRequest = new LoginRequest("ayush", "secret1");
+        LoginRequest request = new LoginRequest("itzzankit", "secret1");
         User user = User.builder()
                 .id(new ObjectId())
-                .username("ayush")
-                .email("ayush@example.com")
+                .username("itzzankit")
+                .email("itzzankit@example.com")
                 .password("encoded")
                 .roles(Collections.singletonList("USER"))
                 .build();
+        when(userRepository.findByUsername("itzzankit")).thenReturn(user);
+        when(jwtService.generateToken("itzzankit")).thenReturn("jwt-token");
 
-        when(userRepository.findByUsername("ayush")).thenReturn(user);
-        when(jwtService.generateToken("ayush")).thenReturn("jwt-token");
-
-        AuthResponse response = authService.login(loginRequest);
+        AuthResponse response = authService.login(request);
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         assertEquals("jwt-token", response.getToken());
-        assertEquals("ayush", response.getUsername());
+        assertEquals("itzzankit", response.getUsername());
         assertEquals("USER", response.getRole());
     }
 }
